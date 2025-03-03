@@ -1,0 +1,24 @@
+# Byte-compiled / package files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+
+# Django Stuff
+*.log
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Secrets & Environment Variables
+.env
+*.pem
+
+# VS Code & IDE-specific
+.vscode/
+.idea/
+*.swp
