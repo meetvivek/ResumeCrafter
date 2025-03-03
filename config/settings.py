@@ -28,7 +28,8 @@ INSTALLED_APPS = [
 
 # Custom apps
 MY_APPS = [
-    "accounts"
+    "accounts",
+    'rest_framework',
 ]
 INSTALLED_APPS += MY_APPS
 
@@ -72,6 +73,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = "accounts.CustomUser"
 
 # Password validationrs
 
@@ -93,8 +95,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Kolkata'
+LANGUAGE_CODE = os.getenv("LANGUAGE_CODE")
+TIME_ZONE = os.getenv("TIME_ZONE")
 USE_I18N = True
 USE_TZ = True
 
