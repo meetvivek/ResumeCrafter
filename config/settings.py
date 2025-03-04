@@ -1,20 +1,22 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+from config.config import (SECRET_KEY, DEBUG, ALLOWED_HOSTS, DATABASE_NAME,
+                          DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST,
+                          DATABASE_PORT, TIME_ZONE, LANGUAGE_CODE)
 
-# Load environment variables
-load_dotenv()
+import pymysql
+pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+DEBUG = DEBUG
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else []
+ALLOWED_HOSTS = ALLOWED_HOSTS
 
 # Application definition
 INSTALLED_APPS = [
@@ -64,19 +66,24 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / os.getenv("DATABASE_NAME", "db.sqlite3"),
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": DATABASE_NAME,
+        "USER": DATABASE_USER, 
+        "PASSWORD": DATABASE_PASSWORD,
+        "HOST": DATABASE_HOST,
+        "PORT": DATABASE_PORT,
+        "OPTIONS": {
+            "charset": "utf8mb4",
+        },
     }
 }
 
 AUTH_USER_MODEL = "accounts.CustomUser"
 
-# Password validationrs
 
+# Password validationrs
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -94,14 +101,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-
-LANGUAGE_CODE = os.getenv("LANGUAGE_CODE")
-TIME_ZONE = os.getenv("TIME_ZONE")
+LANGUAGE_CODE = LANGUAGE_CODE
+TIME_ZONE = TIME_ZONE
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
 
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
