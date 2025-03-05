@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from datetime import timedelta
 from config.config import (SECRET_KEY, DEBUG, ALLOWED_HOSTS, DATABASE_NAME,
                           DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST,
                           DATABASE_PORT, TIME_ZONE, LANGUAGE_CODE)
@@ -31,7 +32,9 @@ INSTALLED_APPS = [
 # Custom apps
 MY_APPS = [
     "accounts",
-    'rest_framework',
+    "rest_framework",
+    "rest_framework.authtoken",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 INSTALLED_APPS += MY_APPS
 
@@ -99,6 +102,30 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# REST Framework Authentication Settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+
+# Simple JWT Settings
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),  # Access Token Expiry
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # Refresh Token Expiry
+    "ROTATE_REFRESH_TOKENS": True,  # Generates a new refresh token on refresh
+    "BLACKLIST_AFTER_ROTATION": True,  # Prevents old refresh tokens from working
+    "AUTH_HEADER_TYPES": ("Bearer",),  # Authorization: Bearer <token>
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "COOKIE_SECURE": True,  # Secure cookies
+    "COOKIE_HTTPONLY": True,  # Prevent JavaScript access
+    "COOKIE_SAMESITE": "Lax",  # Prevent CSRF issues
+
+}
 
 # Internationalization
 LANGUAGE_CODE = LANGUAGE_CODE
