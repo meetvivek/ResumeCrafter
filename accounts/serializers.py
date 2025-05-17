@@ -23,7 +23,6 @@ class SignupSerializer(serializers.ModelSerializer):
         password = validated_data.pop("password1")
         user = User.objects.create(**validated_data)
         user.set_password(password)
-        user.is_active = False
         user.save()
         return user
     
@@ -37,7 +36,7 @@ class LoginSerializer(serializers.Serializer):
         if not user:
             raise serializers.ValidationError("Invalid credentials")
         if not user.is_active:
-            raise serializers.ValidationError("User account is not active.")
+            raise serializers.ValidationError("Account is not active, Please contact support !")
         if hasattr(user, "email_verification") and not user.email_verification.is_verified:
             raise serializers.ValidationError("Email is not verified. Please verify your email.")
         return {"user": user}
