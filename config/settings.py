@@ -3,7 +3,9 @@ from pathlib import Path
 from datetime import timedelta
 from config.config import (SECRET_KEY, DEBUG, ALLOWED_HOSTS, DATABASE_NAME,
                           DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST,
-                          DATABASE_PORT, TIME_ZONE, LANGUAGE_CODE)
+                          DATABASE_PORT, TIME_ZONE, LANGUAGE_CODE, HOST, 
+                          PORT, EMAIL_TLS, EMAIL_USER, EMAIL_PASSWORD)
+
 
 import pymysql
 pymysql.install_as_MySQLdb()
@@ -159,3 +161,11 @@ LOGGING = {
         "level": "DEBUG",
     },
 }
+
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = HOST
+EMAIL_PORT = PORT
+EMAIL_USE_TLS = EMAIL_TLS
+EMAIL_HOST_USER = EMAIL_USER
+EMAIL_HOST_PASSWORD = EMAIL_PASSWORD

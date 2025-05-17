@@ -23,3 +23,11 @@ DATABASE_PORT = os.getenv("DATABASE_PORT")
 # Time & Language
 TIME_ZONE = os.getenv("TIME_ZONE")
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE")
+
+BASE_BACK_URL= os.getenv("BASE_BACK_URL")
+
+HOST = os.getenv("EMAIL_HOST")
+PORT = os.getenv("EMAIL_PORT")
+EMAIL_TLS = os.getenv("EMAIL_USE_TLS")
+EMAIL_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")

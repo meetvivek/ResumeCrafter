@@ -4,7 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
-from .serializers import SignupSerializer, LoginSerializer
+from .models import EmailVerification
+from .serializers import SignupSerializer, LoginSerializer, UserSerializer
 
 User = get_user_model()
 
@@ -16,8 +17,31 @@ class SignupView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             return Response({"message": "User created successfully!"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class EmailVerificationView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, token):
+        try:
+            email_verif = EmailVerification.objects.get(token=token)
+            if email_verif.is_verified:
+                return Response({"message": "Email already verified."}) 
+            email_verif.is_verified = True
+            email_verif.save()
+
+            # Activate user now
+            user = email_verif.user
+            user.is_active = True
+            user.save()
+            return Response({"message": "Email verified successfully!"})
+        
+        except EmailVerification.DoesNotExist:
+            return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+    
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -28,11 +52,12 @@ class LoginView(APIView):
             user = serializer.validated_data["user"]
             refresh = RefreshToken.for_user(user)  # Generate JWT Token
             return Response({
+                "message": "Login successful!",
+                "user": UserSerializer(user).data,
                 "refresh": str(refresh),
-                "access": str(refresh.access_token),
-                "message": "Login successful!"
+                "access": str(refresh.access_token)
             })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
