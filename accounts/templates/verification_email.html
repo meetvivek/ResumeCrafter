@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: rgb(133, 26, 141);
+            text-align: center;  
+        }
+        p {
+            line-height: 1.5;
+        }
+        .verification-link {
+            background: #efeded;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;        
+        }
+        .link {
+            font-size: 20px;
+            font-weight: bold;
+            color: rgb(133, 26, 141);   
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #cfcece;
+            text-align: center;  
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Verification</h1>
+        <hr>
+        <p>Dear {{ first_name }},</p>
+        <p>Thank you for signing up! To complete your registration, please click the link below to verify your email address:</p>
+        <div class="verification-link">
+            <p class="link"><a href="{{ verification_url }}" target="_blank" style="text-decoration: none; color: #5f0d64;">Verify Email</a></p>
+        </div>
+        <p style="font-weight: bold;">If you didn't request this verification, please ignore this email.</p>
+        <p class="footer"> This is an auto-generated email. Please do not reply. <br> &copy; 2025 ResumeCrafter. All rights reserved.</p>
+    </div>
+</body>
+</html>
