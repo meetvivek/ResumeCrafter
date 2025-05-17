@@ -6,6 +6,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from .models import EmailVerification
 from .serializers import SignupSerializer, LoginSerializer, UserSerializer
+from django.urls import reverse, NoReverseMatch
+from config.config import BASE_BACK_URL
+import logging
+from .utils import send_verification_email_html
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -101,3 +107,46 @@ class LogoutView(APIView):
             return Response({"message": "Logout successful!"}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+
+class ResendVerificationEmailView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+
+        if not email:
+            return Response({"detail": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"detail": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+        if hasattr(user, "email_verification") and user.email_verification.is_verified:
+            return Response({"detail": "Email is already verified."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            email_verif, _ = EmailVerification.objects.get_or_create(user=user)
+
+            try:
+                path = reverse("email-verify", kwargs={"token": str(email_verif.token)})
+            except NoReverseMatch:
+                logger.error("URL reverse failed for email verification.")
+                return Response({"detail": "Invalid token or URL pattern."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            verification_url = f"{BASE_BACK_URL}/{path}"
+
+            try:
+                send_verification_email_html(user, verification_url)
+                logger.info(f"[Resend Verification] Email successfully sent to {user.email}")
+                return Response({"detail": "Verification email resent successfully."}, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.exception(f"Error sending verification email: {e}")
+                return Response({"detail": "Failed to send verification email."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            logger.exception(f"Error in resend verification view: {e}")
+            return Response({"detail": "Something went wrong."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
