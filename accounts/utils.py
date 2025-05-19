@@ -4,6 +4,9 @@ from django.conf import settings
 from django.urls import reverse, NoReverseMatch
 from config.config import BASE_BACK_URL
 import logging
+import dns.resolver
+import requests
+from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
@@ -78,3 +81,75 @@ def send_verification_email_html(user, verification_url):
         logger.info(f"[Email Verification] HTML email successfully sent to {to_email}")
     except Exception as e:
         logger.exception(f"[Email Verification] Failed to send email to {to_email}: {e}")
+
+
+
+
+# URL to a maintained list of disposable email domains
+DISPOSABLE_EMAIL_LIST_URL = "https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/d5e20b926d8dcad50f1a25b832641a4b6fdfbe4f/disposable_email_blocklist.conf"
+
+
+# Set of known trusted email providers (based on MX records)
+TRUSTED_MX_PROVIDERS = {
+    "google.com": "Google",
+    "zoho.com": "Zoho",
+    "outlook.com": "Microsoft",
+    "hotmail.com": "Microsoft",
+    "yahoo.com": "Yahoo",
+    "icloud.com": "Apple",
+    "protonmail.ch": "ProtonMail",
+    "fastmail.com": "Fastmail",
+}
+
+
+@lru_cache(maxsize=1)
+def get_disposable_domains():
+    """Fetch and cache the set of known disposable email domains."""
+    try:
+        response = requests.get(DISPOSABLE_EMAIL_LIST_URL)
+        response.raise_for_status()
+        domains = set(line.strip().lower() for line in response.text.splitlines() if line.strip())
+        return domains
+    except Exception as e:
+        print("Error fetching disposable domain list:", e)
+        return set()
+
+
+def is_disposable_email(email: str) -> bool:
+    domain = email.split('@')[-1].lower()
+    return domain in get_disposable_domains()
+
+
+def get_mail_service_from_mx(email: str) -> str:
+    """
+    Returns the name of a known email provider based on MX record.
+    Returns 'Unknown' if no trusted provider is found.
+    """
+    try:
+        domain = email.split('@')[1]
+        mx_records = dns.resolver.resolve(domain, 'MX')
+        for mx in mx_records:
+            mx_host = str(mx.exchange).lower().strip('.')
+            for trusted_domain, provider in TRUSTED_MX_PROVIDERS.items():
+                if trusted_domain in mx_host:
+                    return provider
+        return "Unknown"
+    except Exception:
+        return "Unknown"
+
+
+def validate_email_address(email: str) -> tuple[bool, str]:
+    """
+    Final validation function.
+    Returns (True, reason) if email is valid.
+    Returns (False, reason) if email is disposable or from an unknown provider.
+    """
+    if is_disposable_email(email):
+        return False, "Disposable email addresses are not allowed."
+
+    provider = get_mail_service_from_mx(email)
+    if provider == "Unknown":
+        return False, "Email provider is not trusted or unrecognized."
+
+    return True, f"Valid email from {provider}."
+

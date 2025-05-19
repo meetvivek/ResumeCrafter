@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from .models import EmailVerification
 from .serializers import SignupSerializer, LoginSerializer, UserSerializer
 import logging
-from .utils import trigger_verification_email
+from .utils import trigger_verification_email, validate_email_address
 
 
 logger = logging.getLogger(__name__)
@@ -19,22 +19,29 @@ class SignupView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = SignupSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            return Response({"message": "User created successfully!"}, status=status.HTTP_201_CREATED)
-        # return Response({"error" : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        error_messages = serializer.errors.get("non_field_errors")
-        if error_messages:
-            error_message = error_messages[0] 
-        else: 
-            for key, messages in serializer.errors.items():
-                if messages:
-                    error_message = messages
-                    break
         
-        return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        email = data.get("email")
+        valid, reason = validate_email_address(email)
+        if valid:
+            serializer = SignupSerializer(data=data)
+            if serializer.is_valid():
+                user = serializer.save()
+                return Response({"message": "User created successfully!"}, status=status.HTTP_201_CREATED)
+            # return Response({"error" : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            error_messages = serializer.errors.get("non_field_errors")
+            if error_messages:
+                error_message = error_messages[0] 
+            else: 
+                for key, messages in serializer.errors.items():
+                    if messages:
+                        error_message = messages
+                        break
+            
+            return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": reason}, status=status.HTTP_400_BAD_REQUEST)
     
 
 
